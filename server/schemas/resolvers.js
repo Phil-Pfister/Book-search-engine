@@ -9,7 +9,8 @@ const resolvers = {
             if (context.user) {
                 const  userData = await User
                 .findOne({ _id: context.user._id })
-                .populate("books");
+                .select('-__v -password')
+                .populate("savedBooks");
 
                 return userData;
             }
@@ -18,8 +19,8 @@ const resolvers = {
     },
 
     Mutation: {
-        addUser: async (parent, { username, email, password }) => {
-            const user = await User.create({ username, email, password });
+        addUser: async (parent, args) => {
+            const user = await User.create(args);
             const token = signToken(user);
             return { token, user };
         },
@@ -45,7 +46,7 @@ const resolvers = {
                     { $addToSet: { savedBooks: bookData } },
                     { new: true },
                 )
-                .populate("books");
+                .populate("savedBooks");
                 return updatedUser;
             };
             throw new AuthenticationError("You must be loggind in!");
